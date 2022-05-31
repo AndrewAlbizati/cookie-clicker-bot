@@ -1,0 +1,42 @@
+{
+  "cursor": {
+    "cps": 0.2,
+    "base-price": 15,
+    "description": "Autoclicks every 5 seconds."
+  },
+  "grandma": {
+    "cps": 0.8,
+    "base-price": 100,
+    "description": "A nice grandma to bake more cookies."
+  },
+  "factory": {
+    "cps": 4.0,
+    "base-price": 500,
+    "description": "Produces large quantities of cookies."
+  },
+  "mine": {
+    "cps": 10.0,
+    "base-price": 2000,
+    "description": "Mines out cookie dough and chocolate chips."
+  },
+  "shipment": {
+    "cps": 20.0,
+    "base-price": 7000,
+    "description": "Brings in fresh cookies from the cookie planet."
+  },
+  "alchemy lab": {
+    "cps": 100.0,
+    "base-price": 50000,
+    "description": "Turns gold into cookies!"
+  },
+  "portal": {
+    "cps": 1333.2,
+    "base-price": 1000000,
+    "description": "Opens a door to the cookieverse."
+  },
+  "time machine": {
+    "cps": 24691.2,
+    "base-price": 123456789,
+    "description": "Brings cookies from the past, before they were even eaten."
+  }
+}
