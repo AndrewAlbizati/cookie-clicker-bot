@@ -1,3 +1,5 @@
+package com.github.AndrewAlbizati;
+
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.activity.ActivityType;

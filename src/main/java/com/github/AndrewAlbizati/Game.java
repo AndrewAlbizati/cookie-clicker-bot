@@ -1,3 +1,5 @@
+package com.github.AndrewAlbizati;
+
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
