@@ -34,6 +34,7 @@ public class Game {
     private int timeMachines;
 
     static {
+        // Get all information about the store (saved locally in resources)
         try {
             InputStream jsonStream = Game.class.getResourceAsStream("/store.json");
 
@@ -223,7 +224,7 @@ public class Game {
         eb.setDescription("Cookies: **" + String.format("%,d", getCookies()) + "**\n" +
                 "Cookies/second: **" + round(cookiesPerSecond, 1) + "**");
 
-        eb.addField("Buying Buildings", "Type /buy <building name> to buy a building");
+        eb.addField("Buying Items", "Type /buy <item name> to buy an item");
 
         for (String building : buildings) {
             eb.addField(building + " (:cookie: " + String.format("%,d", getCost(building.toLowerCase(), 1)) + ")",
@@ -232,7 +233,7 @@ public class Game {
                             "*\n**" + getAmountOwned(building) + " owned.**");
         }
 
-        eb.setFooter("Updates every 10 seconds");
+        eb.setFooter("Updates every time the cookie is clicked");
 
         return eb;
     }

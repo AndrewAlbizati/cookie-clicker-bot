@@ -13,8 +13,13 @@ import java.util.*;
 import java.util.List;
 
 public class Commands {
-    public static void newGame(SlashCommandInteraction interaction, HashMap<Long, Game> games) {
-        if (games.containsKey(interaction.getUser().getId())) {
+    private final Bot bot;
+    public Commands(Bot bot) {
+        this.bot = bot;
+    }
+
+    public void newGame(SlashCommandInteraction interaction) {
+        if (bot.getGames().containsKey(interaction.getUser().getId())) {
             interaction.createImmediateResponder()
                     .setContent("You already have a game started.")
                     .setFlags(InteractionCallbackDataFlag.EPHEMERAL)
@@ -22,7 +27,7 @@ public class Commands {
             return;
         }
         Game game = new Game(interaction.getUser());
-        games.put(interaction.getUser().getId(), game);
+        bot.getGames().put(interaction.getUser().getId(), game);
 
         Message message = interaction.getUser().sendMessage(game.toEmbedBuilder(), ActionRow.of(Button.primary("click", "\uD83C\uDF6A"))).join();
         game.setMessage(message);
@@ -33,8 +38,8 @@ public class Commands {
                 .respond().join();
     }
 
-    public static void buy(SlashCommandInteraction interaction, HashMap<Long, Game> games) {
-        if (!games.containsKey(interaction.getUser().getId())) {
+    public void buy(SlashCommandInteraction interaction) {
+        if (!bot.getGames().containsKey(interaction.getUser().getId())) {
             interaction.createImmediateResponder()
                     .setContent("You must start a game before buying items.")
                     .setFlags(InteractionCallbackDataFlag.EPHEMERAL)
@@ -42,7 +47,7 @@ public class Commands {
             return;
         }
 
-        Game game = games.get(interaction.getUser().getId());
+        Game game = bot.getGames().get(interaction.getUser().getId());
 
         String item = interaction.getOptionStringValueByName("ITEM").get();
         int amount = Math.toIntExact(interaction.getOptionLongValueByName("AMOUNT").orElse(1L));
@@ -55,7 +60,7 @@ public class Commands {
 
         if (game.buy(item, amount)) {
             interaction.createImmediateResponder()
-                    .setContent("Successfully purchased " + amount + " building" + (amount == 1 ? "" : "s"))
+                    .setContent("Successfully purchased " + amount + " item" + (amount == 1 ? "" : "s"))
                     .setFlags(InteractionCallbackDataFlag.EPHEMERAL)
                     .respond().join();
         } else {
@@ -66,15 +71,15 @@ public class Commands {
         }
     }
 
-    public static void help(SlashCommandInteraction interaction, HashMap<Long, Game> games) {
+    public void help(SlashCommandInteraction interaction) {
         EmbedBuilder eb = new EmbedBuilder();
         eb.setTitle("Cookie Clicker");
         eb.setColor(new Color(204, 204, 204));
         eb.setDescription("To start a game of Cookie Clicker, type /newgame. A message will be directly sent to you with more instructions on how to play.");
 
         LinkedHashMap<User, Long> sortedMap = new LinkedHashMap<>();
-        for (Long key : games.keySet()) {
-            sortedMap.put(games.get(key).getUser(), games.get(key).getCookies());
+        for (Long key : bot.getGames().keySet()) {
+            sortedMap.put(bot.getGames().get(key).getUser(), bot.getGames().get(key).getCookies());
         }
 
         // Sort the LinkedHashMap
@@ -106,15 +111,15 @@ public class Commands {
                 .respond().join();
     }
 
-    public static void resendMessage(SlashCommandInteraction interaction, HashMap<Long, Game> games) {
-        if (!games.containsKey(interaction.getUser().getId())) {
+    public void resendMessage(SlashCommandInteraction interaction) {
+        if (!bot.getGames().containsKey(interaction.getUser().getId())) {
             interaction.createImmediateResponder()
                     .setContent("You aren't currently playing Cookie Clicker. Type /newgame to start a game.")
                     .setFlags(InteractionCallbackDataFlag.EPHEMERAL)
                     .respond().join();
             return;
         }
-        Game game = games.get(interaction.getUser().getId());
+        Game game = bot.getGames().get(interaction.getUser().getId());
         Message message = game.getUser().sendMessage(game.toEmbedBuilder(), ActionRow.of(Button.primary("click", "\uD83C\uDF6A"))).join();
         game.getMessage().delete();
         game.setMessage(message);
@@ -125,11 +130,11 @@ public class Commands {
                 .setFlags(InteractionCallbackDataFlag.EPHEMERAL)
                 .respond().join();
 
-        Bot.saveGames();
+        bot.saveGames();
     }
 
-    public static void quit(SlashCommandInteraction interaction, HashMap<Long, Game> games) {
-        if (!games.containsKey(interaction.getUser().getId())) {
+    public void quit(SlashCommandInteraction interaction) {
+        if (!bot.getGames().containsKey(interaction.getUser().getId())) {
             interaction.createImmediateResponder()
                     .setContent("You aren't currently playing Cookie Clicker. Type /newgame to start a game.")
                     .setFlags(InteractionCallbackDataFlag.EPHEMERAL)
@@ -137,13 +142,13 @@ public class Commands {
             return;
         }
 
-        games.remove(interaction.getUser().getId());
+        bot.getGames().remove(interaction.getUser().getId());
 
         interaction.createImmediateResponder()
                 .setContent(":thumbsup:")
                 .setFlags(InteractionCallbackDataFlag.EPHEMERAL)
                 .respond().join();
 
-        Bot.saveGames();
+        bot.saveGames();
     }
 }

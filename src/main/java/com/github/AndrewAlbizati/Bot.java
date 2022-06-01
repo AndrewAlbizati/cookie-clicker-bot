@@ -15,88 +15,62 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class Bot {
-    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private static final HashMap<Long, Game> games = new HashMap<>();
-    private static DiscordApi api;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final HashMap<Long, Game> games = new HashMap<>();
+    private final String token;
+    private DiscordApi api;
 
-    public static void main(String[] args) {
-        String token = "";
+    public Bot(String token) {
+        this.token = token;
+    }
 
-        // Get token from config.properties
-        try {
-            // Create config.properties if absent
-            File f = new File("config.properties");
-            if (f.createNewFile()) {
-                System.out.println(f.getName() + " created.");
-                FileWriter fw = new FileWriter("config.properties");
-                fw.write("token=");
-                fw.close();
-            }
-
-            Properties prop = new Properties();
-            FileInputStream ip = new FileInputStream("config.properties");
-            prop.load(ip);
-            ip.close();
-
-            // Get the bot token
-            token = prop.getProperty("token");
-
-            if (token == null || token.length() == 0) {
-                throw new NullPointerException("Please add the bot's token to config.properties");
-            }
-
-            // Create saves.json
-            File saves = new File("saves.json");
-            if (saves.createNewFile()) {
-                FileWriter writer = new FileWriter("saves.json");
-                writer.write("{}"); // Empty JSON object
-                writer.close();
-                System.out.println(saves.getName() + " has been created");
-            }
-
-            // Stop program if an error is raised (bot token not found)
-        } catch (IOException | NullPointerException e) {
-            e.printStackTrace();
-            return;
-        }
-
+    public void start() {
         // Create the bot
         api = new DiscordApiBuilder().setToken(token).login().join();
 
         // Let the user know the bot is working correctly
         System.out.println("Logged in as " + api.getYourself().getDiscriminatedName());
 
-
         // Set bot status
         api.updateStatus(UserStatus.ONLINE);
         api.updateActivity(ActivityType.PLAYING, "Type /newgame to start a game");
 
-        // Create slash commands (may take a few mins to update on Discord)
-        SlashCommand.with("newgame", "Starts a game of Cookie Clicker").createGlobal(api).join();
+        loadGames();
+        addCommands();
+        addListeners();
 
-        SlashCommand.with("buy", "Buy an item in your game",
-                Arrays.asList(
-                        SlashCommandOption.create(SlashCommandOptionType.STRING, "ITEM", "Building to be purchased", true),
-                        SlashCommandOption.create(SlashCommandOptionType.LONG, "AMOUNT", "Amount of buildings to be purchased", false)
-                )).createGlobal(api).join();
+        scheduler.scheduleAtFixedRate(() -> {
+            if ((System.currentTimeMillis() / 1000) % 300 == 0) {
+                saveGames();
+            }
 
-        SlashCommand.with("help", "Information about Cookie Clicker and server leaderboard").createGlobal(api).join();
-        SlashCommand.with("resendmessage", "Resends the game message").createGlobal(api).join();
-        SlashCommand.with("quit", "Quits the current game").createGlobal(api).join();
+            for (Game game : games.values()) {
+                try {
+                    game.updateCookies();
+                    /*if ((System.currentTimeMillis() / 1000) % 10 == 0) {
+                        game.getMessage().edit(game.toEmbedBuilder());
+                    }*/
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 0, 1, TimeUnit.SECONDS);
+    }
 
+    private void addListeners() {
+        Commands commands = new Commands(this);
         api.addSlashCommandCreateListener(event -> {
             switch (event.getSlashCommandInteraction().getCommandName().toLowerCase()) {
-                case "newgame" -> Commands.newGame(event.getSlashCommandInteraction(), games);
-                case "buy" -> Commands.buy(event.getSlashCommandInteraction(), games);
-                case "help" -> Commands.help(event.getSlashCommandInteraction(), games);
-                case "resendmessage" -> Commands.resendMessage(event.getSlashCommandInteraction(), games);
-                case "quit" -> Commands.quit(event.getSlashCommandInteraction(), games);
+                case "newgame" -> commands.newGame(event.getSlashCommandInteraction());
+                case "buy" -> commands.buy(event.getSlashCommandInteraction());
+                case "help" -> commands.help(event.getSlashCommandInteraction());
+                case "resendmessage" -> commands.resendMessage(event.getSlashCommandInteraction());
+                case "quit" -> commands.quit(event.getSlashCommandInteraction());
             }
         });
 
@@ -110,32 +84,30 @@ public class Bot {
             if (!games.containsKey(userId)) {
                 return;
             }
+            Game game = games.get(userId);
 
-            games.get(userId).addCookie();
+            game.addCookie();
             interaction.acknowledge();
+            game.getMessage().edit(game.toEmbedBuilder());
         });
-
-        loadGames();
-
-        scheduler.scheduleAtFixedRate(() -> {
-            if ((System.currentTimeMillis() / 1000) % 300 == 0) {
-                saveGames();
-            }
-
-            for (Game game : games.values()) {
-                try {
-                    game.updateCookies();
-                    if ((System.currentTimeMillis() / 1000) % 10 == 0) {
-                        game.getMessage().edit(game.toEmbedBuilder());
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }, 0, 1, TimeUnit.SECONDS);
     }
 
-    public static void saveGames() {
+    private void addCommands() {
+        // Create slash commands (may take a few mins to update on Discord)
+        SlashCommand.with("newgame", "Starts a game of Cookie Clicker").createGlobal(api).join();
+
+        SlashCommand.with("buy", "Buy an item in your game",
+                Arrays.asList(
+                        SlashCommandOption.create(SlashCommandOptionType.STRING, "ITEM", "Building to be purchased", true),
+                        SlashCommandOption.create(SlashCommandOptionType.LONG, "AMOUNT", "Amount of buildings to be purchased", false)
+                )).createGlobal(api).join();
+
+        SlashCommand.with("help", "Information about Cookie Clicker and bot leaderboard").createGlobal(api).join();
+        SlashCommand.with("resendmessage", "Resends the game message").createGlobal(api).join();
+        SlashCommand.with("quit", "Quits the current game").createGlobal(api).join();
+    }
+
+    public void saveGames() {
         try {
             JSONObject saves = new JSONObject();
             JSONObject gamesObj = new JSONObject();
@@ -154,7 +126,7 @@ public class Bot {
         }
     }
 
-    private static void loadGames() {
+    private void loadGames() {
         try {
             String fileName = "saves.json";
             FileReader reader = new FileReader(fileName);
@@ -177,5 +149,9 @@ public class Bot {
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
+    }
+
+    public HashMap<Long, Game> getGames() {
+        return games;
     }
 }
