@@ -52,9 +52,6 @@ public class Bot {
             for (Game game : games.values()) {
                 try {
                     game.updateCookies();
-                    /*if ((System.currentTimeMillis() / 1000) % 10 == 0) {
-                        game.getMessage().edit(game.toEmbedBuilder());
-                    }*/
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

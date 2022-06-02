@@ -24,14 +24,14 @@ public class Game {
     private double cookies;
     private double cookiesPerSecond;
 
-    private int cursors;
-    private int grandmas;
-    private int factories;
-    private int mines;
-    private int shipments;
-    private int alchemyLabs;
-    private int portals;
-    private int timeMachines;
+    private long cursors;
+    private long grandmas;
+    private long factories;
+    private long mines;
+    private long shipments;
+    private long alchemyLabs;
+    private long portals;
+    private long timeMachines;
 
     static {
         // Get all information about the store (saved locally in resources)
@@ -59,14 +59,14 @@ public class Game {
         startTime = (long) object.get("time-started");
         cookies = (double) object.get("cookies");
 
-        cursors = Math.toIntExact((long)object.get("cursor"));
-        grandmas = Math.toIntExact((long)object.get("grandma"));
-        factories = Math.toIntExact((long)object.get("factory"));
-        mines = Math.toIntExact((long)object.get("mine"));
-        shipments = Math.toIntExact((long)object.get("shipment"));
-        alchemyLabs = Math.toIntExact((long)object.get("alchemy lab"));
-        portals = Math.toIntExact((long)object.get("portal"));
-        timeMachines = Math.toIntExact((long)object.get("time machine"));
+        cursors = (long) object.get("cursor");
+        grandmas = (long) object.get("grandma");
+        factories = (long) object.get("factory");
+        mines = (long) object.get("mine");
+        shipments = (long) object.get("shipment");
+        alchemyLabs = (long) object.get("alchemy lab");
+        portals = (long) object.get("portal");
+        timeMachines = (long) object.get("time machine");
 
         updateCPS();
         for (long i = 0; i < (System.currentTimeMillis() / 1000) - (saveTime / 1000); i++) {
@@ -124,7 +124,7 @@ public class Game {
         cookiesPerSecond = cps;
     }
 
-    public int getAmountOwned(String item) {
+    public long getAmountOwned(String item) {
         return switch (item.toLowerCase()) {
             case "cursor" -> cursors;
             case "grandma" -> grandmas;
@@ -138,59 +138,34 @@ public class Game {
         };
     }
 
-    public int getCost(String item, int amount) {
-        int basePrice = 0;
-        int numOwned = 0;
-        switch (item.toLowerCase()) {
-            case "cursor" -> {
-                JSONObject cursor = (JSONObject) itemData.get("cursor");
-                basePrice = Integer.parseInt(cursor.get("base-price").toString());
-                numOwned = cursors;
-            }
-            case "grandma" -> {
-                JSONObject grandma = (JSONObject) itemData.get("grandma");
-                basePrice = Integer.parseInt(grandma.get("base-price").toString());
-                numOwned = grandmas;
-            }
-            case "factory" -> {
-                JSONObject factory = (JSONObject) itemData.get("factory");
-                basePrice = Integer.parseInt(factory.get("base-price").toString());
-                numOwned = factories;
-            }
-            case "mine" -> {
-                JSONObject mine = (JSONObject) itemData.get("mine");
-                basePrice = Integer.parseInt(mine.get("base-price").toString());
-                numOwned = mines;
-            }
-            case "shipment" -> {
-                JSONObject shipment = (JSONObject) itemData.get("shipment");
-                basePrice = Integer.parseInt(shipment.get("base-price").toString());
-                numOwned = shipments;
-            }
-            case "alchemy lab" -> {
-                JSONObject alchemyLab = (JSONObject) itemData.get("alchemy lab");
-                basePrice = Integer.parseInt(alchemyLab.get("base-price").toString());
-                numOwned = alchemyLabs;
-            }
-            case "portal" -> {
-                JSONObject portal = (JSONObject) itemData.get("portal");
-                basePrice = Integer.parseInt(portal.get("base-price").toString());
-                numOwned = portals;
-            }
-            case "time machine" -> {
-                JSONObject timeMachine = (JSONObject) itemData.get("time machine");
-                basePrice = Integer.parseInt(timeMachine.get("base-price").toString());
-                numOwned = timeMachines;
-            }
+    public long getCost(String item, long amount) {
+        long numOwned = switch(item.toLowerCase()) {
+            case "cursor" -> cursors;
+            case "grandma" -> grandmas;
+            case "factory" -> factories;
+            case "mine" -> mines;
+            case "shipment" -> shipments;
+            case "alchemy lab" -> alchemyLabs;
+            case "portal" -> portals;
+            case "time machine" -> timeMachines;
+            default -> -1;
+        };
+
+        if (numOwned == -1) {
+            return -1;
         }
 
-        return (int) (Math.ceil(basePrice * Math.pow(1.1, amount + numOwned) / 0.1) - Math.ceil(basePrice * Math.pow(1.1, numOwned) / 0.1));
+        long basePrice = (long) ((JSONObject) itemData.get(item)).get("base-price");
+
+        return (long) (Math.ceil(basePrice * Math.pow(1.1, amount + numOwned) / 0.1) - Math.ceil(basePrice * Math.pow(1.1, numOwned) / 0.1));
     }
 
-    public boolean buy(String item, int amount) {
-        if (getCookies() < getCost(item, amount)) {
+    public boolean buy(String item, long amount) {
+        long cost = getCost(item, amount);
+        if (cost == -1 || getCookies() < cost) {
             return false;
         }
+
         cookies -= getCost(item, amount);
         switch (item.toLowerCase()) {
             case "cursor" -> cursors += amount;

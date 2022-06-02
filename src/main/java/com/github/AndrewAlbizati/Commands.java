@@ -50,7 +50,7 @@ public class Commands {
         Game game = bot.getGames().get(interaction.getUser().getId());
 
         String item = interaction.getOptionStringValueByName("ITEM").get();
-        int amount = Math.toIntExact(interaction.getOptionLongValueByName("AMOUNT").orElse(1L));
+        long amount = interaction.getOptionLongValueByName("AMOUNT").orElse(1L);
 
         amount = Math.abs(amount);
 
@@ -96,7 +96,7 @@ public class Commands {
         Collections.reverse(reverseOrderedKeys);
 
         StringBuilder builder = new StringBuilder();
-        int i = 1;
+        long i = 1;
         for (User user : reverseOrderedKeys) {
             builder.append(i + ". " + user.getDiscriminatedName() + " **(" + String.format("%,d", sortedMap.get(user)) + " :cookie:)**");
             if (++i > 10) {
