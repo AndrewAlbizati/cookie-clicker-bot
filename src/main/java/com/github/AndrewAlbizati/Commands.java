@@ -49,7 +49,16 @@ public class Commands {
 
         Game game = bot.getGames().get(interaction.getUser().getId());
 
-        String item = interaction.getOptionStringValueByName("ITEM").get();
+        String itemRequested = interaction.getOptionStringValueByName("ITEM").get();
+        Items item = Items.stringToItem(itemRequested);
+        if (item == null) {
+            interaction.createImmediateResponder()
+                    .setContent("Item not found.")
+                    .setFlags(InteractionCallbackDataFlag.EPHEMERAL)
+                    .respond().join();
+            return;
+        }
+
         long amount = interaction.getOptionLongValueByName("AMOUNT").orElse(1L);
 
         amount = Math.abs(amount);
@@ -58,7 +67,7 @@ public class Commands {
             amount--;
         }
 
-        if (game.buy(item, amount)) {
+        if (amount != 0 && game.buy(item, amount)) {
             interaction.createImmediateResponder()
                     .setContent("Successfully purchased " + amount + " item" + (amount == 1 ? "" : "s"))
                     .setFlags(InteractionCallbackDataFlag.EPHEMERAL)

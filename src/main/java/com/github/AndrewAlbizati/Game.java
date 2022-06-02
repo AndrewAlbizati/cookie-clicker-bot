@@ -15,7 +15,6 @@ import java.io.InputStreamReader;
 
 public class Game {
     private static JSONObject itemData;
-    private static final String[] buildings = {"Cursor", "Grandma", "Factory", "Mine", "Shipment", "Alchemy Lab", "Portal", "Time Machine"};
 
     private final User user;
     private final long startTime;
@@ -124,58 +123,43 @@ public class Game {
         cookiesPerSecond = cps;
     }
 
-    public long getAmountOwned(String item) {
-        return switch (item.toLowerCase()) {
-            case "cursor" -> cursors;
-            case "grandma" -> grandmas;
-            case "factory" -> factories;
-            case "mine" -> mines;
-            case "shipment" -> shipments;
-            case "alchemy lab" -> alchemyLabs;
-            case "portal" -> portals;
-            case "time machine" -> timeMachines;
-            default -> -1;
+    public long getAmountOwned(Items item) {
+        return switch (item) {
+            case CURSOR -> cursors;
+            case GRANDMA -> grandmas;
+            case FACTORY -> factories;
+            case MINE -> mines;
+            case SHIPMENT -> shipments;
+            case ALCHEMY_LAB -> alchemyLabs;
+            case PORTAL -> portals;
+            case TIME_MACHINE -> timeMachines;
         };
     }
 
-    public long getCost(String item, long amount) {
-        long numOwned = switch(item.toLowerCase()) {
-            case "cursor" -> cursors;
-            case "grandma" -> grandmas;
-            case "factory" -> factories;
-            case "mine" -> mines;
-            case "shipment" -> shipments;
-            case "alchemy lab" -> alchemyLabs;
-            case "portal" -> portals;
-            case "time machine" -> timeMachines;
-            default -> -1;
-        };
+    public long getCost(Items item, long amount) {
+        long numOwned = getAmountOwned(item);
 
-        if (numOwned == -1) {
-            return -1;
-        }
-
-        long basePrice = (long) ((JSONObject) itemData.get(item)).get("base-price");
+        long basePrice = (long) ((JSONObject) itemData.get(item.toString().toLowerCase())).get("base-price");
 
         return (long) (Math.ceil(basePrice * Math.pow(1.1, amount + numOwned) / 0.1) - Math.ceil(basePrice * Math.pow(1.1, numOwned) / 0.1));
     }
 
-    public boolean buy(String item, long amount) {
+    public boolean buy(Items item, long amount) {
         long cost = getCost(item, amount);
-        if (cost == -1 || getCookies() < cost) {
+        if (getCookies() < cost) {
             return false;
         }
 
-        cookies -= getCost(item, amount);
-        switch (item.toLowerCase()) {
-            case "cursor" -> cursors += amount;
-            case "grandma" -> grandmas += amount;
-            case "factory" -> factories += amount;
-            case "mine" -> mines += amount;
-            case "shipment" -> shipments += amount;
-            case "alchemy lab" -> alchemyLabs += amount;
-            case "portal" -> portals += amount;
-            case "time machine" -> timeMachines += amount;
+        cookies -= cost;
+        switch (item) {
+            case CURSOR -> cursors += amount;
+            case GRANDMA -> grandmas += amount;
+            case FACTORY -> factories += amount;
+            case MINE -> mines += amount;
+            case SHIPMENT -> shipments += amount;
+            case ALCHEMY_LAB -> alchemyLabs += amount;
+            case PORTAL -> portals += amount;
+            case TIME_MACHINE -> timeMachines += amount;
         }
         updateCPS();
         return true;
@@ -201,11 +185,11 @@ public class Game {
 
         eb.addField("Buying Items", "Type /buy <item name> to buy an item");
 
-        for (String building : buildings) {
-            eb.addField(building + " (:cookie: " + String.format("%,d", getCost(building.toLowerCase(), 1)) + ")",
-                    "*" + ((JSONObject) itemData.get(building.toLowerCase())).get("description").toString()
-                            + " (" + ((JSONObject) itemData.get(building.toLowerCase())).get("cps").toString() + " CPS)" +
-                            "*\n**" + getAmountOwned(building) + " owned.**");
+        for (Items item : Items.values()) {
+            eb.addField(item + " (:cookie: " + String.format("%,d", getCost(item, 1)) + ")",
+                    "*" + ((JSONObject) itemData.get(item.toString().toLowerCase())).get("description").toString()
+                            + " (" + ((JSONObject) itemData.get(item.toString().toLowerCase())).get("cps").toString() + " CPS)" +
+                            "*\n**" + getAmountOwned(item) + " owned.**");
         }
 
         eb.setFooter("Updates every time the cookie is clicked");
