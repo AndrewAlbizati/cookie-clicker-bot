@@ -196,10 +196,10 @@ public class Game {
             case "cursor" -> cursors += amount;
             case "grandma" -> grandmas += amount;
             case "factory" -> factories += amount;
-            case "mine" -> mines++;
+            case "mine" -> mines += amount;
             case "shipment" -> shipments += amount;
             case "alchemy lab" -> alchemyLabs += amount;
-            case "portal" -> portals++;
+            case "portal" -> portals += amount;
             case "time machine" -> timeMachines += amount;
         }
         updateCPS();
@@ -222,7 +222,7 @@ public class Game {
         eb.setThumbnail("https://play-lh.googleusercontent.com/OssE3ON9WsLZedOF39UCgtIHcRYfV0OqQS9O78LfmRdxSyKdHX52G2OFa0LkG6D-k9w");
 
         eb.setDescription("Cookies: **" + String.format("%,d", getCookies()) + "**\n" +
-                "Cookies/second: **" + round(cookiesPerSecond, 1) + "**");
+                "Cookies/second: **" + String.format("%,.1f", round(cookiesPerSecond, 1)) + "**");
 
         eb.addField("Buying Items", "Type /buy <item name> to buy an item");
 
