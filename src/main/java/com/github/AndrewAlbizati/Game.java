@@ -44,11 +44,22 @@ public class Game {
         }
     }
 
+    /**
+     * Creates a brand-new game.
+     * @param user The user who the game will be registered for.
+     */
     public Game(User user) {
         this.user = user;
         startTime = System.currentTimeMillis();
     }
 
+    /**
+     * Creates a game based off of a save from the saves.json file.
+     * @param object The JSONObject registered in the saves.json file.
+     * @param api A reference to the DiscordApi used to retrieve the Discord user.
+     * @param userId The Discord id of the user who is playing the game.
+     * @param saveTime The time at which the JSONObject was saved. This is used to add any lost cookies.
+     */
     public Game(JSONObject object, DiscordApi api, long userId, long saveTime) {
         long messageId = (long) object.get("message-id");
         this.user = api.getUserById(userId).join();
@@ -93,6 +104,9 @@ public class Game {
         cookies += cookiesPerSecond;
     }
 
+    /**
+     * Updates the cookiesPerSecond variable by multiplying the amount of items owned by the item's base cps.
+     */
     public void updateCPS() {
         double cps = 0.0;
 
@@ -123,6 +137,11 @@ public class Game {
         cookiesPerSecond = cps;
     }
 
+    /**
+     * Returns the amount of the item owned.
+     * @param item An Items enum value.
+     * @return The amount of that item that is owned by the player.
+     */
     public long getAmountOwned(Items item) {
         return switch (item) {
             case CURSOR -> cursors;
@@ -136,6 +155,12 @@ public class Game {
         };
     }
 
+    /**
+     * Returns the cost of buying a certain amount of items.
+     * @param item An Items enum value of the item that is being purchased.
+     * @param amount The amount of that item that will be purchased.
+     * @return The amount of cookies that it will cost to by that amount of items.
+     */
     public long getCost(Items item, long amount) {
         long numOwned = getAmountOwned(item);
 
@@ -144,6 +169,12 @@ public class Game {
         return (long) (Math.ceil(basePrice * Math.pow(1.1, amount + numOwned) / 0.1) - Math.ceil(basePrice * Math.pow(1.1, numOwned) / 0.1));
     }
 
+    /**
+     * Buys a certain amount of items from the store.
+     * @param item An Items enum value of that item that will be purchased.
+     * @param amount The amount of the item that will be purchased.
+     * @return True if the sale went through, false if the user doesn't have enough cookies.
+     */
     public boolean buy(Items item, long amount) {
         long cost = getCost(item, amount);
         if (getCookies() < cost) {
@@ -173,6 +204,10 @@ public class Game {
         return cookiesPerSecond;
     }
 
+    /**
+     * Converts the game object to an EmbedBuilder that can be sent to a player.
+     * @return An EmbedBuilder with all necessary information.
+     */
     public EmbedBuilder toEmbedBuilder() {
         EmbedBuilder eb = new EmbedBuilder();
         eb.setTitle("Cookie Clicker");
@@ -197,6 +232,10 @@ public class Game {
         return eb;
     }
 
+    /**
+     * Converts the game to a JSONObject that is ready to be stored in the saves.json file.
+     * @return A JSONObject with all necessary information.
+     */
     public JSONObject toJSONObject() {
         JSONObject object = new JSONObject();
 

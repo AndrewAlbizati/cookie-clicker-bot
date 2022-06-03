@@ -14,10 +14,15 @@ import java.util.List;
 
 public class Commands {
     private final Bot bot;
+
     public Commands(Bot bot) {
         this.bot = bot;
     }
 
+    /**
+     * Responds to the /newgame command by initializing a new game.
+     * @param interaction The slash command interaction that was created for a /newgame command being called.
+     */
     public void newGame(SlashCommandInteraction interaction) {
         if (bot.getGames().containsKey(interaction.getUser().getId())) {
             interaction.createImmediateResponder()
@@ -38,6 +43,10 @@ public class Commands {
                 .respond().join();
     }
 
+    /**
+     * Responds to the /buy command by buying items in a game.
+     * @param interaction The slash command interaction that was created for a /buy command being called.
+     */
     public void buy(SlashCommandInteraction interaction) {
         if (!bot.getGames().containsKey(interaction.getUser().getId())) {
             interaction.createImmediateResponder()
@@ -80,6 +89,10 @@ public class Commands {
         }
     }
 
+    /**
+     * Responds to the /help command by showing information about the bot, including a leaderboard.
+     * @param interaction The slash command interaction that was created for a /help command being called.
+     */
     public void help(SlashCommandInteraction interaction) {
         EmbedBuilder eb = new EmbedBuilder();
         eb.setTitle("Cookie Clicker");
@@ -120,6 +133,10 @@ public class Commands {
                 .respond().join();
     }
 
+    /**
+     * Responds to the /resendmessage command by resending the game message in case the user can't find the original.
+     * @param interaction The slash command interaction that was created for a /resendmessgae command being called.
+     */
     public void resendMessage(SlashCommandInteraction interaction) {
         if (!bot.getGames().containsKey(interaction.getUser().getId())) {
             interaction.createImmediateResponder()
@@ -129,19 +146,30 @@ public class Commands {
             return;
         }
         Game game = bot.getGames().get(interaction.getUser().getId());
-        Message message = game.getUser().sendMessage(game.toEmbedBuilder(), ActionRow.of(Button.primary("click", "\uD83C\uDF6A"))).join();
-        game.getMessage().delete();
-        game.setMessage(message);
+        try {
+            Message message = game.getUser().sendMessage(game.toEmbedBuilder(), ActionRow.of(Button.primary("click", "\uD83C\uDF6A"))).join();
+            game.getMessage().delete();
+            game.setMessage(message);
 
-        interaction.createImmediateResponder()
-                .setContent(":thumbsup:")
-                .setFlags(InteractionCallbackDataFlag.EPHEMERAL)
-                .setFlags(InteractionCallbackDataFlag.EPHEMERAL)
-                .respond().join();
+            interaction.createImmediateResponder()
+                    .setContent(":thumbsup:")
+                    .setFlags(InteractionCallbackDataFlag.EPHEMERAL)
+                    .respond().join();
+        } catch (Exception e) {
+            e.printStackTrace();
+            interaction.createImmediateResponder()
+                    .setContent(":thumbsdown: (" + e.getMessage() + ")")
+                    .setFlags(InteractionCallbackDataFlag.EPHEMERAL)
+                    .respond().join();
+        }
 
         bot.saveGames();
     }
 
+    /**
+     * Responds to the /quit command by erasing the game that the user is playing from the saves.json file.
+     * @param interaction The slash command interaction that was created for a /quit command being called.
+     */
     public void quit(SlashCommandInteraction interaction) {
         if (!bot.getGames().containsKey(interaction.getUser().getId())) {
             interaction.createImmediateResponder()

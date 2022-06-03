@@ -29,6 +29,13 @@ public class Bot {
         this.token = token;
     }
 
+    public HashMap<Long, Game> getGames() {
+        return games;
+    }
+
+    /**
+     * Starts the bot, loads games, adds commands, and initializes event listeners.
+     */
     public void start() {
         // Create the bot
         api = new DiscordApiBuilder().setToken(token).login().join();
@@ -45,10 +52,12 @@ public class Bot {
         addListeners();
 
         scheduler.scheduleAtFixedRate(() -> {
+            // Save all active games every 5 minutes
             if ((System.currentTimeMillis() / 1000) % 300 == 0) {
                 saveGames();
             }
 
+            // Update cookies every second
             for (Game game : games.values()) {
                 try {
                     game.updateCookies();
@@ -59,6 +68,10 @@ public class Bot {
         }, 0, 1, TimeUnit.SECONDS);
     }
 
+    /**
+     * Adds all necessary event listeners for the bot to function.
+     * This includes slash command create and message component create.
+     */
     private void addListeners() {
         Commands commands = new Commands(this);
         api.addSlashCommandCreateListener(event -> {
@@ -89,6 +102,10 @@ public class Bot {
         });
     }
 
+    /**
+     * Adds all commands to allow the bot to run.
+     * This includes /newgame, /buy, /help, /resendmessage, and /quit.
+     */
     private void addCommands() {
         // Create slash commands (may take a few mins to update on Discord)
         SlashCommand.with("newgame", "Starts a game of Cookie Clicker").createGlobal(api).join();
@@ -104,6 +121,9 @@ public class Bot {
         SlashCommand.with("quit", "Quits the current game").createGlobal(api).join();
     }
 
+    /**
+     * Saves all active games to the saves.json file.
+     */
     public void saveGames() {
         try {
             JSONObject saves = new JSONObject();
@@ -123,6 +143,9 @@ public class Bot {
         }
     }
 
+    /**
+     * Loads all games from the saves.json file.
+     */
     private void loadGames() {
         try {
             String fileName = "saves.json";
@@ -146,9 +169,5 @@ public class Bot {
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
-    }
-
-    public HashMap<Long, Game> getGames() {
-        return games;
     }
 }
