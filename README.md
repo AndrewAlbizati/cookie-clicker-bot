@@ -60,11 +60,11 @@ This command allows users to purchase items in their game. The items that the us
    2. 24,691.2 CPS
    
 #### Pricing Formulas
-<img src="https://latex.codecogs.com/svg.image?\bg{white}Price\:=\:Base\:cost\:*\:1.1^M" />
+<img src="https://latex.codecogs.com/svg.image?Price\:=\:Base\:cost\:*\:1.1^M" />
 
 Where **M** = number of that type of building currently owned.
 
-<img src="https://latex.codecogs.com/svg.image?\bg{white}Cumulative\:price\:=\:\frac{Base\:cost\:*\:(1.1^N\:-\:1)}{0.1}" />
+<img src="https://latex.codecogs.com/svg.image?Cumulative\:price\:=\:\frac{Base\:cost\:*\:(1.1^N\:-\:1)}{0.1}" />
 
 Where **N** = the number of buildings.
 
