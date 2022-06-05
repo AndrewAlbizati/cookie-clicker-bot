@@ -12,6 +12,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 public class Game {
     private static JSONObject itemData;
@@ -36,10 +37,13 @@ public class Game {
         // Get all information about the store (saved locally in resources)
         try {
             InputStream jsonStream = Game.class.getResourceAsStream("/store.json");
+            if (jsonStream == null) {
+                throw new NullPointerException("store.json is null");
+            }
 
             JSONParser parser = new JSONParser();
-            itemData = (JSONObject) parser.parse(new InputStreamReader(jsonStream, "UTF-8"));
-        } catch (IOException | ParseException e) {
+            itemData = (JSONObject) parser.parse(new InputStreamReader(jsonStream, StandardCharsets.UTF_8));
+        } catch (IOException | ParseException | NullPointerException e) {
             e.printStackTrace();
         }
     }
@@ -110,27 +114,35 @@ public class Game {
     public void updateCPS() {
         double cps = 0.0;
 
+        // Cursors
         JSONObject cursor = (JSONObject) itemData.get("cursor");
         cps += (double) cursor.get("cps") * cursors;
 
+        // Grandmas
         JSONObject grandma = (JSONObject) itemData.get("grandma");
         cps += (double) grandma.get("cps") * grandmas;
 
+        // Factories
         JSONObject factory = (JSONObject) itemData.get("factory");
         cps += (double) factory.get("cps") * factories;
 
+        // Mines
         JSONObject mine = (JSONObject) itemData.get("mine");
         cps += (double) mine.get("cps") * mines;
 
+        // Shipments
         JSONObject shipment = (JSONObject) itemData.get("shipment");
         cps += (double) shipment.get("cps") * shipments;
 
+        // Alchemy labs
         JSONObject alchemyLab = (JSONObject) itemData.get("alchemy lab");
         cps += (double) alchemyLab.get("cps") * alchemyLabs;
 
+        // Portals
         JSONObject portal = (JSONObject) itemData.get("portal");
         cps += (double) portal.get("cps") * portals;
 
+        // Time machines
         JSONObject timeMachine = (JSONObject) itemData.get("time machine");
         cps += (double) timeMachine.get("cps") * timeMachines;
 
@@ -216,7 +228,7 @@ public class Game {
         eb.setThumbnail("https://play-lh.googleusercontent.com/OssE3ON9WsLZedOF39UCgtIHcRYfV0OqQS9O78LfmRdxSyKdHX52G2OFa0LkG6D-k9w");
 
         eb.setDescription("Cookies: **" + String.format("%,d", getCookies()) + "**\n" +
-                "Cookies/second: **" + String.format("%,.1f", round(cookiesPerSecond, 1)) + "**");
+                "Cookies/second: **" + String.format("%,.1f", round(cookiesPerSecond)) + "**");
 
         eb.addField("Buying Items", "Type /buy <item name> to buy an item");
 
@@ -241,7 +253,7 @@ public class Game {
 
         object.put("message-id", message.getId());
         object.put("time-started", startTime);
-        object.put("cookies", round(cookies, 1));
+        object.put("cookies", round(cookies));
         object.put("cursor", cursors);
         object.put("grandma", grandmas);
         object.put("factory", factories);
@@ -254,9 +266,8 @@ public class Game {
         return object;
     }
 
-    private static double round(double value, int precision) {
-        int scale = (int) Math.pow(10, precision);
-        return (double) Math.round(value * scale) / scale;
+    private static double round(double value) {
+        return (double) Math.round(value * 10) / 10;
     }
 
     public String toString() {

@@ -21,6 +21,7 @@ public class Main {
                 fw.close();
             }
 
+            // Load properties
             Properties prop = new Properties();
             FileInputStream ip = new FileInputStream("config.properties");
             prop.load(ip);
@@ -42,7 +43,7 @@ public class Main {
                 System.out.println(saves.getName() + " has been created");
             }
 
-            // Stop program if an error is raised (bot token not found)
+        // Stop program if an error is raised (bot token not found)
         } catch (IOException | NullPointerException e) {
             e.printStackTrace();
             return;

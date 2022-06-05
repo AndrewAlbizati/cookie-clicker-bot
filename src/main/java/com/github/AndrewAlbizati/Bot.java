@@ -74,6 +74,8 @@ public class Bot {
      */
     private void addListeners() {
         Commands commands = new Commands(this);
+
+        // Listen to slash commands
         api.addSlashCommandCreateListener(event -> {
             switch (event.getSlashCommandInteraction().getCommandName().toLowerCase()) {
                 case "newgame" -> commands.newGame(event.getSlashCommandInteraction());
@@ -84,6 +86,7 @@ public class Bot {
             }
         });
 
+        // Listen to button presses
         api.addMessageComponentCreateListener(event -> {
             MessageComponentInteraction interaction = event.getMessageComponentInteraction();
             if (!interaction.getCustomId().equals("click")) {
@@ -107,7 +110,7 @@ public class Bot {
      * This includes /newgame, /buy, /help, /resendmessage, and /quit.
      */
     private void addCommands() {
-        // Create slash commands (may take a few mins to update on Discord)
+        // Create slash commands (may take a few minutes to update on Discord)
         SlashCommand.with("newgame", "Starts a game of Cookie Clicker").createGlobal(api).join();
 
         SlashCommand.with("buy", "Buy an item in your game",

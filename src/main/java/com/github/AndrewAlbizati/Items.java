@@ -10,7 +10,8 @@ public enum Items {
     private static String capitalize(String s) {
         StringBuilder sb = new StringBuilder();
         for (String s1 : s.split(" ")) {
-            sb.append(s1.substring(0, 1).toUpperCase() + s1.substring(1).toLowerCase());
+            sb.append(s1.substring(0, 1).toUpperCase());
+            sb.append(s1.substring(1).toLowerCase());
             sb.append(" ");
         }
         return sb.substring(0, sb.length() - 1);
