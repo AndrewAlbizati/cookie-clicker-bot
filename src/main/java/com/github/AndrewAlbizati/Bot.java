@@ -51,13 +51,8 @@ public class Bot {
         addCommands();
         addListeners();
 
+        // Save all active games every 5 minutes
         scheduler.scheduleAtFixedRate(() -> {
-            // Save all active games every 5 minutes
-            if ((System.currentTimeMillis() / 1000) % 300 == 0) {
-                saveGames();
-            }
-
-            // Update cookies every second
             for (Game game : games.values()) {
                 try {
                     game.updateCookies();
@@ -65,7 +60,8 @@ public class Bot {
                     e.printStackTrace();
                 }
             }
-        }, 0, 1, TimeUnit.SECONDS);
+            saveGames();
+        }, 1, 5, TimeUnit.MINUTES);
     }
 
     /**
@@ -99,7 +95,9 @@ public class Bot {
             }
             Game game = games.get(userId);
 
+            game.updateCookies();
             game.addCookie();
+
             interaction.acknowledge();
             game.getMessage().edit(game.toEmbedBuilder());
         });

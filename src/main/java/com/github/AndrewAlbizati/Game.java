@@ -19,6 +19,7 @@ public class Game {
 
     private final User user;
     private final long startTime;
+    private long lastUpdated;
     private Message message;
 
     private double cookies;
@@ -83,9 +84,8 @@ public class Game {
         timeMachines = (long) object.get("time machine");
 
         updateCPS();
-        for (long i = 0; i < (System.currentTimeMillis() / 1000) - (saveTime / 1000); i++) {
-            updateCookies();
-        }
+        lastUpdated = saveTime;
+        updateCookies();
     }
 
     public void setMessage(Message message) {
@@ -105,7 +105,10 @@ public class Game {
     }
 
     public void updateCookies() {
-        cookies += cookiesPerSecond;
+        long difference = (System.currentTimeMillis() - lastUpdated) / 1000;
+
+        cookies += cookiesPerSecond * difference;
+        lastUpdated = System.currentTimeMillis();
     }
 
     /**
